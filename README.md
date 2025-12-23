@@ -1,2 +1,2 @@
 # SaharaML
-A Cloud-Native Early Warning System for Health Risk Forecasting in Africa
+A scalable machine learning system that forecasts short-horizon health risk levels for African regions using heterogeneous public data, temporal modeling, and uncertainty-aware predictions.
