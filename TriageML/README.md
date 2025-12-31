@@ -4,6 +4,7 @@
 
 
 
+
 ## 📌 Problem Statement
 
 Healthcare systems, especially in resource-constrained settings, often face challenges with timely medical triage. Patients typically present with **free-form descriptions of symptoms**, and determining the likely condition and appropriate next steps (urgency, precautions) requires clinical expertise that may not always be immediately available.
@@ -18,6 +19,8 @@ Manual triage is:
 
 
 
+
+
 ## 🤖 Why Machine Learning?
 
 This problem is well-suited to machine learning because:
@@ -28,6 +31,8 @@ This problem is well-suited to machine learning because:
 - Once trained, models can provide **fast, consistent, and scalable triage support**.
 
 The project is designed as an **end-to-end ML system**, covering data preprocessing, model training, evaluation, and deployment via an API.
+
+
 
 
 
@@ -49,6 +54,8 @@ Null values in symptom columns indicate the **absence of additional symptoms**, 
 
 
 
+
+
 ## 🧠 Project Approach
 
 The overall approach is to:
@@ -57,6 +64,8 @@ The overall approach is to:
 2. Train multiple neural network models to classify diseases from text
 3. Enrich predictions with precautionary guidance
 4. Serve predictions through a clean, documented API
+
+
 
 
 
@@ -74,6 +83,8 @@ The overall approach is to:
 
 
 
+
+
 ### 2️⃣ Centralized Configuration (`src/config.py`)
 
 - Defined all file paths and artifact locations in one place
@@ -84,6 +95,8 @@ The overall approach is to:
   - raw data
   - preprocessing artifacts
   - model checkpoints
+
+
 
 
 
@@ -120,6 +133,8 @@ After preprocessing:
 
 
 
+
+
 ### 4️⃣ Stratified Data Splitting (`src/split.py`)
 
 - Implemented deterministic **train / validation / test splits**
@@ -127,6 +142,8 @@ After preprocessing:
 - Separation of concerns:
   - Splitting logic operates at the **row level**
   - Feature/target selection is deferred to model-specific datasets
+
+
 
 
 
@@ -165,6 +182,8 @@ TriageML/
 
 
 
+
+
 ## 🚧 Work In Progress / Next Steps
 
 The following components are planned and will be implemented next:
@@ -180,10 +199,14 @@ The following components are planned and will be implemented next:
 
 
 
+
+
 ### 🔜 Model Evaluation
 
 - Accuracy and **macro-F1 score** (to account for class imbalance)
 - Confusion matrix analysis for selected diseases
+
+
 
 
 
@@ -200,6 +223,8 @@ The following components are planned and will be implemented next:
   - precautionary guidance
 - Support for switching between trained models
 - Model will be deployed to GCP
+
+
 
 
 
