@@ -1,0 +1,246 @@
+{
+    "drug_reaction": [
+        "stop_irritation",
+        "consult_nearest_hospital",
+        "stop_taking_drug",
+        "follow_up"
+    ],
+    "malaria": [
+        "consult_nearest_hospital",
+        "avoid_oily_food",
+        "avoid_non_veg_food",
+        "keep_mosquitos_out"
+    ],
+    "allergy": [
+        "apply_calamine",
+        "cover_area_with_bandage",
+        "use_ice_to_compress_itching"
+    ],
+    "hypothyroidism": [
+        "reduce_stress",
+        "exercise",
+        "eat_healthy",
+        "get_proper_sleep"
+    ],
+    "psoriasis": [
+        "wash_hands_with_warm_soapy_water",
+        "stop_bleeding_using_pressure",
+        "consult_doctor",
+        "salt_baths"
+    ],
+    "gerd": [
+        "avoid_fatty_spicy_food",
+        "avoid_lying_down_after_eating",
+        "maintain_healthy_weight",
+        "exercise"
+    ],
+    "chronic_cholestasis": [
+        "cold_baths",
+        "anti_itch_medicine",
+        "consult_doctor",
+        "eat_healthy"
+    ],
+    "hepatitis_a": [
+        "consult_nearest_hospital",
+        "wash_hands_through",
+        "avoid_fatty_spicy_food",
+        "medication"
+    ],
+    "osteoarthristis": [
+        "acetaminophen",
+        "consult_nearest_hospital",
+        "follow_up",
+        "salt_baths"
+    ],
+    "(vertigo)_paroymsal__positional_vertigo": [
+        "lie_down",
+        "avoid_sudden_change_in_body",
+        "avoid_abrupt_head_movment",
+        "relax"
+    ],
+    "hypoglycemia": [
+        "lie_down_on_side",
+        "check_in_pulse",
+        "drink_sugary_drinks",
+        "consult_doctor"
+    ],
+    "acne": [
+        "bath_twice",
+        "avoid_fatty_spicy_food",
+        "drink_plenty_of_water",
+        "avoid_too_many_products"
+    ],
+    "diabetes": [
+        "have_balanced_diet",
+        "exercise",
+        "consult_doctor",
+        "follow_up"
+    ],
+    "impetigo": [
+        "soak_affected_area_in_warm_water",
+        "use_antibiotics",
+        "remove_scabs_with_wet_compressed_cloth",
+        "consult_doctor"
+    ],
+    "hypertension": [
+        "meditation",
+        "salt_baths",
+        "reduce_stress",
+        "get_proper_sleep"
+    ],
+    "peptic_ulcer_diseae": [
+        "avoid_fatty_spicy_food",
+        "consume_probiotic_food",
+        "eliminate_milk",
+        "limit_alcohol"
+    ],
+    "dimorphic_hemmorhoids(piles)": [
+        "avoid_fatty_spicy_food",
+        "consume_witch_hazel",
+        "warm_bath_with_epsom_salt",
+        "consume_alovera_juice"
+    ],
+    "common_cold": [
+        "drink_vitamin_c_rich_drinks",
+        "take_vapour",
+        "avoid_cold_food",
+        "keep_fever_in_check"
+    ],
+    "chicken_pox": [
+        "use_neem_in_bathing",
+        "consume_neem_leaves",
+        "take_vaccine",
+        "avoid_public_places"
+    ],
+    "cervical_spondylosis": [
+        "use_heating_pad_or_cold_pack",
+        "exercise",
+        "take_otc_pain_reliver",
+        "consult_doctor"
+    ],
+    "hyperthyroidism": [
+        "eat_healthy",
+        "massage",
+        "use_lemon_balm",
+        "take_radioactive_iodine_treatment"
+    ],
+    "urinary_tract_infection": [
+        "drink_plenty_of_water",
+        "increase_vitamin_c_intake",
+        "drink_cranberry_juice",
+        "take_probiotics"
+    ],
+    "varicose_veins": [
+        "lie_down_flat_and_raise_the_leg_high",
+        "use_oinments",
+        "use_vein_compression",
+        "dont_stand_still_for_long"
+    ],
+    "aids": [
+        "avoid_open_cuts",
+        "wear_ppe_if_possible",
+        "consult_doctor",
+        "follow_up"
+    ],
+    "paralysis_(brain_hemorrhage)": [
+        "massage",
+        "eat_healthy",
+        "exercise",
+        "consult_doctor"
+    ],
+    "typhoid": [
+        "eat_high_calorie_vegitables",
+        "antiboitic_therapy",
+        "consult_doctor",
+        "medication"
+    ],
+    "hepatitis_b": [
+        "consult_nearest_hospital",
+        "vaccination",
+        "eat_healthy",
+        "medication"
+    ],
+    "fungal_infection": [
+        "bath_twice",
+        "use_detol_or_neem_in_bathing_water",
+        "keep_infected_area_dry",
+        "use_clean_cloths"
+    ],
+    "hepatitis_c": [
+        "consult_nearest_hospital",
+        "vaccination",
+        "eat_healthy",
+        "medication"
+    ],
+    "migraine": [
+        "meditation",
+        "reduce_stress",
+        "use_poloroid_glasses_in_sun",
+        "consult_doctor"
+    ],
+    "bronchial_asthma": [
+        "switch_to_loose_cloothing",
+        "take_deep_breaths",
+        "get_away_from_trigger",
+        "seek_help"
+    ],
+    "alcoholic_hepatitis": [
+        "stop_alcohol_consumption",
+        "consult_doctor",
+        "medication",
+        "follow_up"
+    ],
+    "jaundice": [
+        "drink_plenty_of_water",
+        "consume_milk_thistle",
+        "eat_fruits_and_high_fiberous_food",
+        "medication"
+    ],
+    "hepatitis_e": [
+        "stop_alcohol_consumption",
+        "rest",
+        "consult_doctor",
+        "medication"
+    ],
+    "dengue": [
+        "drink_papaya_leaf_juice",
+        "avoid_fatty_spicy_food",
+        "keep_mosquitos_away",
+        "keep_hydrated"
+    ],
+    "hepatitis_d": [
+        "consult_doctor",
+        "medication",
+        "eat_healthy",
+        "follow_up"
+    ],
+    "heart_attack": [
+        "call_ambulance",
+        "chew_or_swallow_asprin",
+        "keep_calm"
+    ],
+    "pneumonia": [
+        "consult_doctor",
+        "medication",
+        "rest",
+        "follow_up"
+    ],
+    "arthritis": [
+        "exercise",
+        "use_hot_and_cold_therapy",
+        "try_acupuncture",
+        "massage"
+    ],
+    "gastroenteritis": [
+        "stop_eating_solid_food_for_while",
+        "try_taking_small_sips_of_water",
+        "rest",
+        "ease_back_into_eating"
+    ],
+    "tuberculosis": [
+        "cover_mouth",
+        "consult_doctor",
+        "medication",
+        "rest"
+    ]
+}
