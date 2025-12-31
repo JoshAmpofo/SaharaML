@@ -2,9 +2,6 @@
 
 ## **An End-to-End Machine Learning System for Automated Medical Symptom Triage**
 
-
-
-
 ## 📌 Problem Statement
 
 Healthcare systems, especially in resource-constrained settings, often face challenges with timely medical triage. Patients typically present with **free-form descriptions of symptoms**, and determining the likely condition and appropriate next steps (urgency, precautions) requires clinical expertise that may not always be immediately available.
@@ -17,10 +14,6 @@ Manual triage is:
 
 **TriageML** aims to address this challenge by leveraging **machine learning and natural language processing (NLP)** to automatically analyze symptom descriptions and predict the most likely disease category, while also providing relevant precautionary guidance.
 
-
-
-
-
 ## 🤖 Why Machine Learning?
 
 This problem is well-suited to machine learning because:
@@ -31,10 +24,6 @@ This problem is well-suited to machine learning because:
 - Once trained, models can provide **fast, consistent, and scalable triage support**.
 
 The project is designed as an **end-to-end ML system**, covering data preprocessing, model training, evaluation, and deployment via an API.
-
-
-
-
 
 ## 📂 Dataset Overview
 
@@ -52,10 +41,6 @@ The project uses two related datasets:
 
 Null values in symptom columns indicate the **absence of additional symptoms**, not missing data.
 
-
-
-
-
 ## 🧠 Project Approach
 
 The overall approach is to:
@@ -64,10 +49,6 @@ The overall approach is to:
 2. Train multiple neural network models to classify diseases from text
 3. Enrich predictions with precautionary guidance
 4. Serve predictions through a clean, documented API
-
-
-
-
 
 ## ✅ Work Completed So Far
 
@@ -81,10 +62,6 @@ The overall approach is to:
   - 41 matching diseases across both datasets
 - Identified that null values represent **variable-length symptom lists**, not missing data
 
-
-
-
-
 ### 2️⃣ Centralized Configuration (`src/config.py`)
 
 - Defined all file paths and artifact locations in one place
@@ -95,10 +72,6 @@ The overall approach is to:
   - raw data
   - preprocessing artifacts
   - model checkpoints
-
-
-
-
 
 ### 3️⃣ Preprocessing Pipeline (`src/preprocess.py`)
 
@@ -131,10 +104,6 @@ After preprocessing:
   - `precaution_list`
 - No null values remain in model inputs
 
-
-
-
-
 ### 4️⃣ Stratified Data Splitting (`src/split.py`)
 
 - Implemented deterministic **train / validation / test splits**
@@ -142,10 +111,6 @@ After preprocessing:
 - Separation of concerns:
   - Splitting logic operates at the **row level**
   - Feature/target selection is deferred to model-specific datasets
-
-
-
-
 
 ## 🧱 Current Project Structure
 
@@ -180,10 +145,6 @@ TriageML/
 └── tests/
 ```
 
-
-
-
-
 ## 🚧 Work In Progress / Next Steps
 
 The following components are planned and will be implemented next:
@@ -197,18 +158,10 @@ The following components are planned and will be implemented next:
   - Fine-tuned pretrained language model (e.g. DistilBERT)
   - Used to compare performance against the BiLSTM baseline
 
-
-
-
-
 ### 🔜 Model Evaluation
 
 - Accuracy and **macro-F1 score** (to account for class imbalance)
 - Confusion matrix analysis for selected diseases
-
-
-
-
 
 ### 🔜 Inference & Deployment
 
@@ -224,10 +177,6 @@ The following components are planned and will be implemented next:
 - Support for switching between trained models
 - Model will be deployed to GCP
 
-
-
-
-
 ## 🎯 Project Goal
 
 The final goal of **TriageML** is to deliver a fully documented, reproducible, and deployable machine learning system that demonstrates:
@@ -235,8 +184,6 @@ The final goal of **TriageML** is to deliver a fully documented, reproducible, a
 - strong ML engineering practices
 - deep learning proficiency in PyTorch
 - real-world applicability in healthcare triage
-
-
 
 ## 📌 Disclaimer
 
