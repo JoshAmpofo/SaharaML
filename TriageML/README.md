@@ -132,20 +132,36 @@ After preprocessing:
 
 ## 🧱 Current Project Structure
 
+```bash
 TriageML/
-├── data/
-│ ├── DiseaseAndSymptoms.csv
-│ └── disease precaution.csv
-├── artifacts/
-│ ├── label_encoder.json
-│ └── precaution_map.json
-├── src/
-│ ├── config.py
-│ ├── preprocess.py
-│ ├── split.py
-│── notebooks/
-| ├── data_exploration.ipynb
+├── pyproject.toml
 ├── README.md
+├── artifacts/
+│   ├── bilstm.pt
+│   ├── label_encoder.json
+│   ├── precaution_map.json
+│   ├── transformer.pt
+│   └── vocab.json
+├── data/
+│   ├── DiseaseAndSymptoms.csv
+│   └── Disease precaution.csv
+├── models/
+│   ├── model_bilstm.py
+│   ├── model_transformer.py
+│   ├── train_bilstm.py
+│   └── train_transformer.py
+├── notebooks/
+│   └── data_exploration.ipynb
+├── src/
+│   ├── config.py
+│   ├── dataset_bilstm.py
+│   ├── dataset_transformer.py
+│   ├── evaluate.py
+│   ├── preprocess.py
+│   ├── serve.py
+│   └── split.py
+└── tests/
+```
 
 ---
 
