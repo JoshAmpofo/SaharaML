@@ -16,6 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"
 ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
 MODELS_DIR = PROJECT_ROOT / "models"
+IMAGES_DIR = PROJECT_ROOT / "images"
 
 # Data paths
 SYMPTOMS_CSV = DATA_DIR / "DiseaseAndSymptoms.csv"
