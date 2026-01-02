@@ -22,7 +22,7 @@ from src.split import make_splits, make_group_splits
 from src.dataset_bilstm import SymptomDataset, build_vocab, collate_batch
 from models.model_bilstm import BiLSTMClassifier
 from src.audit import audit_overlap, audit_duplicates
-from src.config import ARTIFACTS_DIR, BILSTM_CKPT_PATH
+from src.config import ARTIFACTS_DIR, MODELS_DIR, BILSTM_CKPT_PATH
 
 
 
@@ -129,7 +129,7 @@ def main() -> None:
     optimizer = torch.optim.Adam(model.parameters(), lr=2e-3, weight_decay=1e-2)
     loss_fn = nn.CrossEntropyLoss()
     best_val_acc = -1.0
-    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
     
     # save vocab for reproducibility
     save_vocab(vocab, ARTIFACTS_DIR / "vocab.json")
