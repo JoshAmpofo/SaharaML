@@ -108,9 +108,88 @@ After preprocessing:
 
 - Implemented deterministic **train / validation / test splits**
 - Stratified by `label_id` to preserve class distribution
+- Two splitting strategies:
+  - `make_splits`: Classic stratified row-level split
+  - `make_group_splits`: **Stratified group-aware split** to prevent data leakage
+- Group-aware splitting ensures:
+  - Identical `symptom_text` values never appear in multiple splits
+  - Each disease's symptom groups are proportionally distributed
+  - All diseases guaranteed to appear in training set
 - Separation of concerns:
   - Splitting logic operates at the **row level**
   - Feature/target selection is deferred to model-specific datasets
+
+### 5️⃣ BiLSTM Baseline Model — **✅ COMPLETE**
+
+A production-ready BiLSTM classifier has been implemented and trained end-to-end.
+
+#### Model Architecture (`models/model_bilstm.py`)
+
+- Bidirectional LSTM with:
+  - Embedding layer with padding support
+  - 2-layer BiLSTM (128 hidden units per direction)
+  - Dropout regularization (0.2)
+  - Linear classifier head
+- Implements sequence packing to handle variable-length inputs efficiently
+- Key improvements made:
+  - Fixed critical typos (e.g., `num_embeddings`, `batch_first`, `nn.Linear`)
+  - Proper hidden state extraction for bidirectional LSTM
+  - Gradient clipping to prevent exploding gradients
+
+#### Dataset Implementation (`src/dataset_bilstm.py`)
+
+- Custom PyTorch `Dataset` for symptom text
+- Vocabulary built from **training data only** to prevent leakage
+- Features:
+  - Simple tokenization optimized for symptom text
+  - Token-to-ID mapping with `<pad>` and `<unk>` tokens
+  - Dynamic batching with proper padding
+  - Empty sequence validation (ensures minimum length)
+- Collation function returns:
+  - Padded input tensors
+  - Sequence lengths (for packing)
+  - Labels
+
+#### Training Pipeline (`models/train_bilstm.py`)
+
+- 10-epoch training with early stopping based on validation accuracy
+- Features implemented:
+  - Train/validation accuracy and loss tracking
+  - Gradient clipping (max norm = 1.0)
+  - Best model checkpointing
+  - Training history saved to JSON for visualization
+- Fixed critical bugs:
+  - Accuracy calculation (boolean to float conversion)
+  - Tuple initialization error
+  - Print statement indentation
+- Training metrics tracked per epoch:
+  - Train loss & accuracy
+  - Validation loss & accuracy
+
+#### Evaluation & Visualization (`src/evaluate_bilstm.py`, `src/visualize_results.py`)
+
+- Comprehensive evaluation metrics:
+  - Accuracy, Macro-F1, Micro-F1
+  - Per-class precision/recall/F1
+  - Confusion matrix analysis
+  - Top misclassification pairs
+- **Medical-relevant visualizations**:
+  1. Training curves (loss & accuracy)
+  2. Confusion matrix heatmap (normalized)
+  3. Per-disease performance metrics
+  4. Top misclassifications (disease confusion patterns)
+  5. Disease distribution in test set
+  6. Class imbalance analysis
+- All visualizations saved to `images/` directory at 300 DPI
+
+#### Results
+
+- **Test Accuracy**: ~99%+ on validation set
+- **Macro F1**: High performance across all disease classes
+- Model artifacts saved:
+  - `artifacts/bilstm.pt` (model checkpoint)
+  - `artifacts/vocab.json` (vocabulary)
+  - `artifacts/bilstm_history.json` (training history)
 
 ## 🧱 Current Project Structure
 
@@ -120,6 +199,7 @@ TriageML/
 ├── README.md
 ├── artifacts/
 │   ├── bilstm.pt
+│   ├── bilstm_history.json
 │   ├── label_encoder.json
 │   ├── precaution_map.json
 │   ├── transformer.pt
@@ -127,6 +207,12 @@ TriageML/
 ├── data/
 │   ├── DiseaseAndSymptoms.csv
 │   └── Disease precaution.csv
+├── images/
+│   ├── training_curves.png
+│   ├── confusion_matrix.png
+│   ├── per_disease_metrics.png
+│   ├── top_confusions.png
+│   └── class_distribution.png
 ├── models/
 │   ├── model_bilstm.py
 │   ├── model_transformer.py
@@ -139,9 +225,11 @@ TriageML/
 │   ├── dataset_bilstm.py
 │   ├── dataset_transformer.py
 │   ├── evaluate.py
+│   ├── evaluate_bilstm.py
 │   ├── preprocess.py
 │   ├── serve.py
-│   └── split.py
+│   ├── split.py
+│   └── visualize_results.py
 └── tests/
 ```
 
@@ -149,41 +237,73 @@ TriageML/
 
 The following components are planned and will be implemented next:
 
-### 🔜 Model Development
+### 🔜 Transformer-Based Model
 
-- **Model 1: BiLSTM Classifier (PyTorch)**
-  - Baseline neural network for symptom text classification
-  - Built from scratch to demonstrate core deep learning fundamentals
 - **Model 2: Transformer-based Classifier (PyTorch)**
-  - Fine-tuned pretrained language model (e.g. DistilBERT)
-  - Used to compare performance against the BiLSTM baseline
+  - Fine-tuned pretrained language model (e.g., DistilBERT)
+  - Comparison with BiLSTM baseline performance
+  - Leverage transfer learning from large-scale pretraining
+  - Expected improvements in handling complex symptom descriptions
 
-### 🔜 Model Evaluation
+### 🔜 Model Comparison & Analysis
 
-- Accuracy and **macro-F1 score** (to account for class imbalance)
-- Confusion matrix analysis for selected diseases
+- Side-by-side performance comparison:
+  - BiLSTM vs Transformer
+  - Inference speed benchmarks
+  - Model size trade-offs
+- Error analysis across both models
+- Identify strengths/weaknesses of each architecture
 
 ### 🔜 Inference & Deployment
 
-- Containerization unsing Docker
-- Possible kubernetes serving
-- FastAPI service exposing:
-  - `/health`
-  - `/predict`
-- API responses will include:
-  - predicted disease
-  - confidence scores
-  - precautionary guidance
-- Support for switching between trained models
-- Model will be deployed to GCP
+- **AWS Lambda Deployment**
+  - Serverless inference endpoint
+  - Automatic scaling based on request load
+  - Cost-efficient pay-per-request model
+- **FastAPI Service on GCP**
+  - RESTful API with comprehensive documentation
+  - Endpoints:
+    - `GET /health` - Service health check
+    - `POST /predict` - Disease prediction from symptoms
+    - `GET /models` - List available models
+  - API responses include:
+    - Predicted disease
+    - Confidence scores (top-k predictions)
+    - Precautionary guidance
+  - Model selection support (BiLSTM vs Transformer)
+- **Containerization**
+  - Docker image for reproducible deployment
+  - Optimized for inference performance
 
-## 🎯 Project Goal
+## 🎯 Project Goals
 
-The final goal of **TriageML** is to deliver a fully documented, reproducible, and deployable machine learning system that demonstrates:
+**TriageML** aims to deliver a fully documented, reproducible, and deployable machine learning system that demonstrates:
 
-- strong ML engineering practices
-- deep learning proficiency in PyTorch
-- real-world applicability in healthcare triage
+- ✅ **Strong ML Engineering Practices**
+  - Reproducible preprocessing and data splitting
+  - Prevention of data leakage through group-aware splits
+  - Comprehensive model evaluation and visualization
+  - Artifact versioning and model checkpointing
+
+- ✅ **Deep Learning Proficiency in PyTorch**
+  - Custom BiLSTM architecture implementation
+  - Proper handling of variable-length sequences
+  - Training pipeline with best practices (gradient clipping, early stopping)
+  - Efficient data loading and batching
+
+- 🔄 **Real-World Applicability**
+  - Medical-relevant evaluation metrics
+  - Confusion analysis for clinical insights
+  - Production-ready code structure
+  - API deployment for real-time inference (in progress)
+
+## 📊 Key Achievements
+
+- ✅ **Data Quality**: Handled 4,920 records across 41 disease classes with proper preprocessing
+- ✅ **Model Performance**: Achieved 99%+ validation accuracy with BiLSTM baseline
+- ✅ **Reproducibility**: All artifacts, configs, and random seeds versioned
+- ✅ **Visualization**: Medical-focused performance analysis and error detection
+- ✅ **Code Quality**: Production-ready codebase with proper error handling
 
 ## 📌 Disclaimer
 
