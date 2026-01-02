@@ -122,6 +122,8 @@ class SymptomDataset(Dataset):
     
     def __getitem__(self, idx: int) -> Tuple[List[int], int]:
         tokens = simple_tokenize(self.texts[idx])
+        if not tokens:
+            tokens = [UNK_TOKEN] # ensure at least one token
         token_ids = self.vocab.encode(tokens)
         label = self.labels[idx]
         return token_ids, label
