@@ -23,12 +23,14 @@ import torch
 from sklearn.metrics import confusion_matrix, classification_report
 from torch.utils.data import DataLoader
 
-from src.config import ARTIFACTS_DIR, IMAGES_DIR, BILSTM_CKPT_PATH, LABEL_ENCODER_PATH
+from src.config import ARTIFACTS_DIR, IMAGES_DIR, BILSTM_CKPT_PATH, LABEL_ENCODER_PATH, TRANSFORMER_CKPT_PATH
 from src.dataset_bilstm import SymptomDataset, collate_batch, Vocab
-from src.evaluate import predict_bilstm, compute_metrics
+from src.dataset_transformer import TransformerSymptomDataset, collate_transformer_batch
+from src.evaluate import compute_metrics
 from src.preprocess import run_preprocessing
 from src.split import make_group_splits
 from models.model_bilstm import BiLSTMClassifier
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
 # Set style for better-looking plots
@@ -45,13 +47,18 @@ def load_vocab(vocab_path):
     return Vocab(stoi=stoi, itos=itos)
 
 
+def load_tokenizer(model_name: str):
+    """Load HuggingFace tokenizer."""
+    return AutoTokenizer.from_pretrained(model_name)
+
+
 def load_training_history(history_path):
     """Load training history from JSON file."""
     with open(history_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def plot_training_curves(history: Dict, save_path: str = None):
+def plot_training_curves(history: Dict, model_type: str = "BiLSTM", save_path: str = None):
     """
     Plot training and validation loss/accuracy curves.
     
@@ -66,7 +73,7 @@ def plot_training_curves(history: Dict, save_path: str = None):
     axes[0].plot(epochs, history["val_loss"], "r-s", label="Val Loss", linewidth=2)
     axes[0].set_xlabel("Epoch", fontsize=12)
     axes[0].set_ylabel("Loss", fontsize=12)
-    axes[0].set_title("Training and Validation Loss", fontsize=14, fontweight="bold")
+    axes[0].set_title(f"{model_type} Training and Validation Loss", fontsize=14, fontweight="bold")
     axes[0].legend(fontsize=11)
     axes[0].grid(True, alpha=0.3)
     
@@ -75,7 +82,7 @@ def plot_training_curves(history: Dict, save_path: str = None):
     axes[1].plot(epochs, history["val_acc"], "r-s", label="Val Accuracy", linewidth=2)
     axes[1].set_xlabel("Epoch", fontsize=12)
     axes[1].set_ylabel("Accuracy", fontsize=12)
-    axes[1].set_title("Training and Validation Accuracy", fontsize=14, fontweight="bold")
+    axes[1].set_title(f"{model_type} Training and Validation Accuracy", fontsize=14, fontweight="bold")
     axes[1].legend(fontsize=11)
     axes[1].grid(True, alpha=0.3)
     axes[1].set_ylim([0, 1.05])
@@ -84,12 +91,56 @@ def plot_training_curves(history: Dict, save_path: str = None):
     
     if save_path:
         plt.savefig(save_path, bbox_inches="tight", dpi=300)
-        print(f"✓ Saved training curves to {save_path}")
+        print(f"✓ Saved {model_type} training curves to {save_path}")
     plt.close()
 
 
+@torch.no_grad()
+def predict_bilstm(model, loader, device) -> Tuple[np.ndarray, np.ndarray]:
+    """Runs inference for BiLSTM model."""
+    model.eval()
+    all_preds = []
+    all_labels = []
+
+    for input_ids, lengths, labels in loader:
+        input_ids = input_ids.to(device)
+        lengths = lengths.to(device)
+
+        logits = model(input_ids, lengths)
+        preds = logits.argmax(dim=1).cpu().numpy()
+
+        all_preds.append(preds)
+        all_labels.append(labels.numpy())
+
+    return np.concatenate(all_preds), np.concatenate(all_labels)
+
+
+@torch.no_grad()
+def predict_transformer(model, loader, device) -> Tuple[np.ndarray, np.ndarray]:
+    """Runs inference for Transformer model."""
+    model.eval()
+    all_preds = []
+    all_labels = []
+
+    for batch in loader:
+        labels = batch["labels"].numpy()
+        batch = {k: v.to(device) for k, v in batch.items()}
+
+        outputs = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        )
+        preds = outputs.logits.argmax(dim=1).cpu().numpy()
+
+        all_preds.append(preds)
+        all_labels.append(labels)
+
+    return np.concatenate(all_preds), np.concatenate(all_labels)
+
+
 def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, 
-                         id_to_label: Dict[int, str], save_path: str = None):
+                         id_to_label: Dict[int, str], model_type: str = "BiLSTM",
+                         save_path: str = None):
     """
     Plot confusion matrix heatmap.
     
@@ -137,7 +188,7 @@ def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray,
     
     ax.set_xlabel("Predicted Disease", fontsize=12, fontweight="bold")
     ax.set_ylabel("True Disease", fontsize=12, fontweight="bold")
-    ax.set_title(f"Confusion Matrix{title_suffix} (Normalized by True Label)", 
+    ax.set_title(f"{model_type} Confusion Matrix{title_suffix} (Normalized by True Label)", 
                 fontsize=14, fontweight="bold")
     
     plt.xticks(rotation=45, ha="right", fontsize=9)
@@ -146,12 +197,13 @@ def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray,
     
     if save_path:
         plt.savefig(save_path, bbox_inches="tight", dpi=300)
-        print(f"✓ Saved confusion matrix to {save_path}")
+        print(f"✓ Saved {model_type} confusion matrix to {save_path}")
     plt.close()
 
 
 def plot_per_disease_metrics(y_true: np.ndarray, y_pred: np.ndarray,
-                             id_to_label: Dict[int, str], save_path: str = None):
+                             id_to_label: Dict[int, str], model_type: str = "BiLSTM",
+                             save_path: str = None):
     """
     Plot per-disease precision, recall, and F1 scores.
     
@@ -216,7 +268,7 @@ def plot_per_disease_metrics(y_true: np.ndarray, y_pred: np.ndarray,
     
     ax.set_xlabel("Score", fontsize=12, fontweight="bold")
     ax.set_ylabel("Disease", fontsize=12, fontweight="bold")
-    ax.set_title("Per-Disease Performance Metrics", fontsize=14, fontweight="bold")
+    ax.set_title(f"{model_type} Per-Disease Performance Metrics", fontsize=14, fontweight="bold")
     ax.set_yticks(x)
     ax.set_yticklabels(diseases, fontsize=9)
     ax.legend(fontsize=11)
@@ -227,13 +279,13 @@ def plot_per_disease_metrics(y_true: np.ndarray, y_pred: np.ndarray,
     
     if save_path:
         plt.savefig(save_path, bbox_inches="tight", dpi=300)
-        print(f"✓ Saved per-disease metrics to {save_path}")
+        print(f"✓ Saved {model_type} per-disease metrics to {save_path}")
     plt.close()
 
 
 def plot_top_confusions(y_true: np.ndarray, y_pred: np.ndarray,
-                       id_to_label: Dict[int, str], top_n: int = 15,
-                       save_path: str = None):
+                       id_to_label: Dict[int, str], model_type: str = "BiLSTM",
+                       top_n: int = 15, save_path: str = None):
     """
     Plot the most common misclassification pairs.
     
@@ -272,7 +324,7 @@ def plot_top_confusions(y_true: np.ndarray, y_pred: np.ndarray,
     ax.set_yticks(range(len(labels)))
     ax.set_yticklabels(labels, fontsize=9)
     ax.set_xlabel("Number of Misclassifications", fontsize=12, fontweight="bold")
-    ax.set_title(f"Top {len(top_pairs)} Most Common Misclassifications", 
+    ax.set_title(f"{model_type} Top {len(top_pairs)} Most Common Misclassifications", 
                 fontsize=14, fontweight="bold")
     ax.grid(axis="x", alpha=0.3)
     
@@ -284,7 +336,7 @@ def plot_top_confusions(y_true: np.ndarray, y_pred: np.ndarray,
     
     if save_path:
         plt.savefig(save_path, bbox_inches="tight", dpi=300)
-        print(f"✓ Saved top confusions to {save_path}")
+        print(f"✓ Saved {model_type} top confusions to {save_path}")
     plt.close()
 
 
@@ -333,21 +385,19 @@ def plot_class_distribution(y_true: np.ndarray, id_to_label: Dict[int, str],
     plt.close()
 
 
-def generate_all_visualizations():
+def generate_bilstm_visualizations():
     """
-    Main function to generate all training and evaluation visualizations.
+    Generate all visualizations for BiLSTM model.
     """
-    # Create images directory
-    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-    
-    print("=" * 60)
+    print("="*60)
     print("Generating Visualizations for BiLSTM Model")
-    print("=" * 60)
+    print("="*60)
     
     # 1. Load and plot training history
     print("\n[1/6] Plotting training curves...")
     history = load_training_history(ARTIFACTS_DIR / "bilstm_history.json")
-    plot_training_curves(history, save_path=IMAGES_DIR / "training_curves.png")
+    plot_training_curves(history, model_type="BiLSTM", 
+                        save_path=IMAGES_DIR / "bilstm_training_curves.png")
     
     # 2. Load test data and model for evaluation plots
     print("[2/6] Loading model and test data...")
@@ -395,36 +445,150 @@ def generate_all_visualizations():
     
     # 3. Plot confusion matrix
     print("[4/6] Plotting confusion matrix...")
-    plot_confusion_matrix(y_true, y_pred, id_to_label, 
-                         save_path=IMAGES_DIR / "confusion_matrix.png")
+    plot_confusion_matrix(y_true, y_pred, id_to_label, model_type="BiLSTM",
+                         save_path=IMAGES_DIR / "bilstm_confusion_matrix.png")
     
     # 4. Plot per-disease metrics
     print("[5/6] Plotting per-disease performance metrics...")
-    plot_per_disease_metrics(y_true, y_pred, id_to_label,
-                            save_path=IMAGES_DIR / "per_disease_metrics.png")
+    plot_per_disease_metrics(y_true, y_pred, id_to_label, model_type="BiLSTM",
+                            save_path=IMAGES_DIR / "bilstm_per_disease_metrics.png")
     
     # 5. Plot top confusions
     print("[6/6] Plotting top misclassifications...")
-    plot_top_confusions(y_true, y_pred, id_to_label, top_n=15,
-                       save_path=IMAGES_DIR / "top_confusions.png")
+    plot_top_confusions(y_true, y_pred, id_to_label, model_type="BiLSTM",
+                       top_n=15, save_path=IMAGES_DIR / "bilstm_top_confusions.png")
     
     # 6. Plot class distribution
     print("[Bonus] Plotting disease distribution...")
     plot_class_distribution(y_true, id_to_label,
-                          save_path=IMAGES_DIR / "class_distribution.png")
+                          save_path=IMAGES_DIR / "bilstm_class_distribution.png")
     
     # Print summary metrics
     print("\n" + "=" * 60)
-    print("SUMMARY METRICS")
+    print("BiLSTM SUMMARY METRICS")
     print("=" * 60)
     metrics = compute_metrics(y_true, y_pred)
     print(f"Test Accuracy: {metrics['accuracy']:.4f}")
     print(f"Macro F1:      {metrics['macro_f1']:.4f}")
     print(f"Micro F1:      {metrics['micro_f1']:.4f}")
     
-    print("\n" + "=" * 60)
+    return metrics
+
+
+def generate_transformer_visualizations():
+    """
+    Generate all visualizations for Transformer model.
+    """
+    print("\n" + "="*60)
+    print("Generating Visualizations for Transformer Model")
+    print("="*60)
+    
+    # 1. Load and plot training history
+    print("\n[1/6] Plotting training curves...")
+    history = load_training_history(ARTIFACTS_DIR / "transformer_training_history.json")
+    plot_training_curves(history, model_type="Transformer",
+                        save_path=IMAGES_DIR / "transformer_training_curves.png")
+    
+    # 2. Load test data and model for evaluation plots
+    print("[2/6] Loading model and test data...")
+    df = run_preprocessing()
+    splits = make_group_splits(df, group_col="symptom_text")
+    
+    # Load label encoder
+    with open(LABEL_ENCODER_PATH, "r", encoding="utf-8") as f:
+        label_to_id = json.load(f)
+    id_to_label = {v: k for k, v in label_to_id.items()}
+    
+    # Load checkpoint and tokenizer
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    ckpt = torch.load(TRANSFORMER_CKPT_PATH, map_location=device)
+    model_name = ckpt["model_name"]
+    max_length = ckpt["max_length"]
+    
+    tokenizer = load_tokenizer(model_name)
+    
+    test_ds = TransformerSymptomDataset(
+        texts=splits.test["symptom_text"].tolist(),
+        labels=splits.test["label_id"].tolist(),
+        tokenizer=tokenizer,
+        max_length=max_length,
+    )
+    
+    test_loader = DataLoader(
+        test_ds,
+        batch_size=128,
+        shuffle=False,
+        collate_fn=collate_transformer_batch,
+    )
+    
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_name,
+        num_labels=ckpt["num_classes"],
+    ).to(device)
+    
+    model.load_state_dict(ckpt["model_state_dict"])
+    
+    # Get predictions
+    print("[3/6] Generating predictions on test set...")
+    y_pred, y_true = predict_transformer(model, test_loader, device)
+    
+    # 3. Plot confusion matrix
+    print("[4/6] Plotting confusion matrix...")
+    plot_confusion_matrix(y_true, y_pred, id_to_label, model_type="Transformer",
+                         save_path=IMAGES_DIR / "transformer_confusion_matrix.png")
+    
+    # 4. Plot per-disease metrics
+    print("[5/6] Plotting per-disease performance metrics...")
+    plot_per_disease_metrics(y_true, y_pred, id_to_label, model_type="Transformer",
+                            save_path=IMAGES_DIR / "transformer_per_disease_metrics.png")
+    
+    # 5. Plot top confusions
+    print("[6/6] Plotting top misclassifications...")
+    plot_top_confusions(y_true, y_pred, id_to_label, model_type="Transformer",
+                       top_n=15, save_path=IMAGES_DIR / "transformer_top_confusions.png")
+    
+    # 6. Plot class distribution (same for both models, but save separately)
+    print("[Bonus] Plotting disease distribution...")
+    plot_class_distribution(y_true, id_to_label,
+                          save_path=IMAGES_DIR / "transformer_class_distribution.png")
+    
+    # Print summary metrics
+    print("\n" + "="*60)
+    print("Transformer SUMMARY METRICS")
+    print("="*60)
+    metrics = compute_metrics(y_true, y_pred)
+    print(f"Test Accuracy: {metrics['accuracy']:.4f}")
+    print(f"Macro F1:      {metrics['macro_f1']:.4f}")
+    print(f"Micro F1:      {metrics['micro_f1']:.4f}")
+    
+    return metrics
+
+
+def generate_all_visualizations():
+    """
+    Main function to generate all training and evaluation visualizations
+    for both BiLSTM and Transformer models.
+    """
+    # Create images directory
+    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # Generate visualizations for both models
+    bilstm_metrics = generate_bilstm_visualizations()
+    transformer_metrics = generate_transformer_visualizations()
+    
+    # Print comparison
+    print("\n" + "="*60)
+    print("MODEL COMPARISON")
+    print("="*60)
+    print(f"{'Metric':<20} {'BiLSTM':>12} {'Transformer':>12}")
+    print("-"*60)
+    print(f"{'Test Accuracy':<20} {bilstm_metrics['accuracy']:>12.4f} {transformer_metrics['accuracy']:>12.4f}")
+    print(f"{'Macro F1':<20} {bilstm_metrics['macro_f1']:>12.4f} {transformer_metrics['macro_f1']:>12.4f}")
+    print(f"{'Micro F1':<20} {bilstm_metrics['micro_f1']:>12.4f} {transformer_metrics['micro_f1']:>12.4f}")
+    
+    print("\n" + "="*60)
     print(f"All visualizations saved to: {IMAGES_DIR}")
-    print("=" * 60)
+    print("="*60)
 
 
 if __name__ == "__main__":

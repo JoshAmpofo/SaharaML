@@ -127,7 +127,7 @@ def main():
         model_name,
         num_labels=num_classes,
     )
-    model = TransformerClassifier(backbone=backbone)
+    model = backbone
     model.to(device)
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)
