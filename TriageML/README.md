@@ -305,6 +305,26 @@ curl -X 'POST' \
 }
 ```
 
+### 🔍 How to Interpret the Response (Non-Technical Explanation)
+
+- `predicted_disease`
+The most likely disease based on the provided symptoms.
+
+- `predicted_probability`
+The model’s confidence score for the top prediction.
+
+- `top_k`
+A ranked list of alternative disease predictions.
+This is especially useful for triage scenarios where multiple conditions may share symptoms.
+
+- `precautions`
+Basic precautionary guidance associated with the predicted disease, retrieved from the dataset.
+
+- `confidence`
+A human-readable confidence band (low, medium, high) derived from the prediction probability to prevent over-trust in uncertain predictions.
+
+- `disclaimer`
+Reinforces that the system is for educational and decision-support purposes only, not medical diagnosis.
 
 ## 🧱 Project Structure
 
