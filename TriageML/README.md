@@ -263,6 +263,7 @@ curl -X 'POST' \
     "model": "transformer",
     "top_k": 5
   }'
+```
 
 #### Response
 ```bash
@@ -302,7 +303,7 @@ curl -X 'POST' \
   "confidence": "high",
   "disclaimer": "Educational use only. Not for clinical diagnosis. Seek a clinician for medical advice."
 }
-
+```
 
 
 ## 🧱 Project Structure
