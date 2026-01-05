@@ -243,6 +243,67 @@ sudo docker run -it --rm  -p 9696:9696 triageml:latest
 http://localhost:9696/docs
 ```
 
+## 🔌 API Usage Example (Swagger & cURL)
+
+The TriageML system exposes a RESTful API built with **FastAPI**.  
+Once the service is running, interactive API documentation is available via **Swagger UI**: http://localhost:9696/docs
+
+### Example: Disease Prediction Request
+
+The following example demonstrates how to send a symptom-based request to the API using `curl`.
+
+#### Request
+```bash
+curl -X 'POST' \
+  'http://127.0.0.1:8000/predict' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "symptoms": "itching, skin_rash, nodal_skin_eruptions",
+    "model": "transformer",
+    "top_k": 5
+  }'
+
+#### Response
+```bash
+{
+  "model_used": "transformer",
+  "symptom_text": "symptoms: itching, skin_rash, nodal_skin_eruptions",
+  "predicted_disease": "fungal_infection",
+  "predicted_probability": 0.6312073469161987,
+  "top_k": [
+    {
+      "disease": "fungal_infection",
+      "probability": 0.6312073469161987
+    },
+    {
+      "disease": "acne",
+      "probability": 0.039966657757759094
+    },
+    {
+      "disease": "gastroenteritis",
+      "probability": 0.018220238387584686
+    },
+    {
+      "disease": "psoriasis",
+      "probability": 0.01699964702129364
+    },
+    {
+      "disease": "hepatitis_e",
+      "probability": 0.016799531877040863
+    }
+  ],
+  "precautions": [
+    "bath_twice",
+    "use_detol_or_neem_in_bathing_water",
+    "keep_infected_area_dry",
+    "use_clean_cloths"
+  ],
+  "confidence": "high",
+  "disclaimer": "Educational use only. Not for clinical diagnosis. Seek a clinician for medical advice."
+}
+
+
 
 ## 🧱 Project Structure
 
@@ -287,5 +348,27 @@ TriageML/
 │   └── visualize_results.py
 └── tests/
 ```
+
+## ☁️ Deployment & Cloud Considerations
+
+### Why AWS EKS & Lambda were not used
+
+Due to limited AWS credits, full deployment using:
+
+- Amazon EKS (Kubernetes) and
+
+- AWS Lambda
+
+was deferred to avoid unexpected costs.
+
+### Planned Improvements
+
+Given sufficient cloud resources, future work would include:
+
+- Deploying the Docker image to EKS for scalable orchestration
+
+- Creating a Lambda-based lightweight inference endpoint
+
+Adding CI/CD for automated model deployment
 
 
